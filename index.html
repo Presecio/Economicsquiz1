@@ -11,7 +11,7 @@
   --bg:#f6f4ef; --card:#ffffff; --ink:#1d2433; --muted:#5d6676; --line:#e4e0d6;
   --navy:#1f3a5f; --accent:#d9822b; --good:#2f8a5b; --goodbg:#e8f5ee; --bad:#c2453d; --badbg:#fbeceb;
   --part:#b9871b; --partbg:#fbf3e0; --chip:#eef1f6;
-  --eg:#2b6cb0; --ue:#7b4fb5; --inf:#c2453d; --nairu:#2f8a5b; --mix:#d9822b; --dist:#0f8b8d; --pp:#8a3b6b; --all:#1f3a5f; --weak:#b9871b;
+  --eg:#2b6cb0; --ue:#7b4fb5; --inf:#c2453d; --nairu:#2f8a5b; --mix:#d9822b; --dist:#0f8b8d; --pp:#8a3b6b; --trends:#4a5568; --all:#1f3a5f; --weak:#b9871b;
 }
 @media (prefers-color-scheme: dark){
   :root{--bg:#14171d;--card:#1d2129;--ink:#e8eaf0;--muted:#9aa3b2;--line:#2d333e;--navy:#8fb3e6;--chip:#262c37;
@@ -74,6 +74,9 @@ textarea:focus{outline:none;border-color:var(--navy)}
 .empty{text-align:center;padding:30px}
 .hide{display:none!important}
 .mini{font-size:12px;border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;font-family:inherit}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:13px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+.chip:hover{border-color:var(--trends);background:var(--card)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}
 .confirm{display:inline-flex;gap:8px;align-items:center}
 </style>
@@ -1185,16 +1188,26 @@ S("Explain why underlying inflation was 'stubbornly' above the RBA's target from
 S("Explain how contractionary fiscal policy helped reduce inflation in 2022–24.",
  "The government ran back-to-back surpluses ($22bn in 2022–23, $15.8bn in 2023–24) – mainly via automatic stabilisers such as company tax from record mining profits and higher income tax. Withdrawing more from the economy than it injected reduced AD, so it did not add to demand-pull inflation and supported the RBA's tightening.",
  [["back-to-back surpluses ($22bn / $15.8bn)","surplus|22|15\\.8"],["mainly automatic stabilisers (mining company tax, income tax, lower welfare)","automatic|mining|company tax|income tax|welfare"],["lower AD → less demand-pull inflation, supports MP","aggregate demand|\\bad\\b|demand.?pull|inflation|support|monetary"]]);
+// ===== trend classification =====
+(function(){
+const re=/\b(19[5-9]\d|20[0-2]\d)\b|covid|\bmib\b|mining (investment )?boom|\bgfc\b|post-covid|transition|rebalancing|recovery|v-shaped|latest|recent|since 20|jobkeeper|jobseeker|bullock|philip lowe|budget outcome|homebuilder|ukraine|record (low|high)|currently|today|has the inflation target been effective|in 202|household debt has|consistent trade|record tot|surge in imports|business confidence after|investment since|real wages in|wages growth fell|post-covid nominal|why did real wages fall|consumer confidence (during|in)|link between consumer confidence|why did the government adopt|recent budget surpluses|gross government debt|cost of living package|first budget surplus|first rate cut|how many ocr|headline running|both headline and underlying|stubbornly|retirement \(pension\) age increase|record high participation|very high participation|in september|in december|in march|in june|in july|in august|2019–20|2020–21|2021–22|2022–23|2023–24|2024–25|first recession|match the period|long-term trend rate|long-term upward trend|still a bit too tight/i;
+const notTrend=["Which economist argued during the Great Depression","WICEP stands for","In which order are the Topic 3","Distinguish between discretionary fiscal policy","(HSC-style) Output 2017","In the 2025 CPI basket","Low inflation encourages consumption","Which is a negative effect of VERY low inflation","Which is an example of a recent budget supply-side","What 'broke' the short-run","(HSC 2023 Q23c style)","Which of these is a SUPPLY-side response","Example HSC essay","An economy has EG −6%","Y: 0, 2000, B","Explain how an increase in the participation rate could raise"];
+for(const q of BANK){
+  const txt=q.q+" "+(q.o||[]).join(" ");
+  q.tr=re.test(txt)&&!notTrend.some(p=>q.q.startsWith(p));
+}
+})();
 
 </script>
 <script>
 const SECTIONS={
-  eg:{n:"Economic Growth",d:"AD, multiplier, real GDP, AS, sources, effects, trends 2002–2026",c:"var(--eg)"},
-  ue:{n:"Unemployment",d:"Measurement, types, causes, groups, costs, trends",c:"var(--ue)"},
-  inf:{n:"Inflation",d:"CPI, headline vs underlying, causes, effects, policy, trends",c:"var(--inf)"},
+  eg:{n:"Economic Growth",d:"AD, multiplier, real GDP, components, AS, effects, policy types",c:"var(--eg)"},
+  ue:{n:"Unemployment",d:"Measurement, types, causes, groups, costs, policies",c:"var(--ue)"},
+  inf:{n:"Inflation",d:"CPI, headline vs underlying, causes, effects, policy",c:"var(--inf)"},
   nairu:{n:"NAIRU",d:"Full employment, Phillips curves, policy settings",c:"var(--nairu)"},
   dist:{n:"Income & Wealth",d:"Gini, Lorenz curves, causes of inequality, policies (from the past papers)",c:"var(--dist)"},
   mix:{n:"Combined",d:"Questions linking growth, unemployment and inflation",c:"var(--mix)"},
+  trends:{n:"Trends",d:"Australian data, periods and recent events for every topic – kept out of the concept sections",c:"var(--trends)"},
   pp:{n:"Past papers",d:"Every question from AT1 2025 & 2026, plus the same questions asked different ways",c:"var(--pp)"},
   all:{n:"Everything",d:"All sections shuffled together",c:"var(--all)"},
   weak:{n:"My weak spots",d:"Only questions you've got wrong and not yet mastered",c:"var(--weak)"}
@@ -1223,13 +1236,14 @@ function renderAiNote(){
 }
 
 // ---- home
-let TYPE="all";
+let TYPE="all",TSUB=null;
 document.querySelectorAll("#typePills .pill").forEach(b=>b.onclick=()=>{TYPE=b.dataset.t;document.querySelectorAll("#typePills .pill").forEach(x=>x.classList.toggle("on",x===b));renderHome()});
 function poolFor(sec){
   let p=BANK.filter(q=>TYPE==="all"||q.t===TYPE);
   if(sec==="weak")return p.filter(isWeak);
   if(sec==="pp")return p.filter(q=>q.pp);
-  if(sec!=="all")p=p.filter(q=>q.s===sec);
+  if(sec==="trends"){p=p.filter(q=>q.tr);return TSUB?p.filter(q=>q.s===TSUB):p}
+  if(sec!=="all")p=p.filter(q=>q.s===sec&&!q.tr);
   return p;
 }
 function renderHome(){
@@ -1243,6 +1257,15 @@ function renderHome(){
     if(k==="weak"){
       el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="stats"><span><span class="dot" style="background:var(--bad)"></span>${w} to review</span></div>`;
       if(!w){el.style.opacity=.55;el.disabled=true}
+    }else if(k==="trends"){
+      const all=BANK.filter(q=>q.tr&&(TYPE==="all"||q.t===TYPE));
+      const tm=all.filter(isMastered).length,tw=all.filter(isWeak).length;
+      const subs=["eg","ue","inf","nairu","mix"].filter(s=>all.some(q=>q.s===s));
+      el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="bar"><i class="m" style="width:${all.length?tm/all.length*100:0}%"></i><i class="w" style="width:${all.length?tw/all.length*100:0}%"></i></div>
+      <div class="stats"><span>${all.length} questions</span><span><span class="dot" style="background:var(--good)"></span>${tm}</span><span><span class="dot" style="background:var(--bad)"></span>${tw}</span></div>
+      <div class="chips">${subs.map(s=>`<span class="chip" data-sub="${s}">${SECTIONS[s].n} · ${all.filter(q=>q.s===s).length}</span>`).join("")}</div>`;
+      el.style.gridColumn="1 / -1";
+      el.onclick=e=>{const c=e.target.closest(".chip");TSUB=c?c.dataset.sub:null;start(k)};g.appendChild(el);continue;
     }else{
       const mp=tot?m/tot*100:0,wp=tot?w/tot*100:0;
       el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="bar"><i class="m" style="width:${mp}%"></i><i class="w" style="width:${wp}%"></i></div>
@@ -1324,6 +1347,7 @@ function next(){
   recent.push(q.id);if(recent.length>20)recent.shift();
   const x=ST[q.id],S=SECTIONS[q.s];
   let head=`<span class="tag sec-t" style="--c:${S.c}">${S.n}</span><span class="tag">${q.t==="mcq"?"Multiple choice":"Short answer · "+q.c.length+" mark"+(q.c.length>1?"s":"")}</span>`;
+  if(q.tr)head+=`<span class="tag">Trend</span>`;
   if(q.pp)head+=`<span class="tag pp">${esc(q.pp)}</span>`;
   if(x&&x.w>0&&x.s<2)head+=`<span class="tag rev">Review – missed ${x.w}×</span>`;
   if(q.t==="mcq"){
