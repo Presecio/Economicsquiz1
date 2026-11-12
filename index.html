@@ -74,6 +74,8 @@ textarea:focus{outline:none;border-color:var(--navy)}
 .empty{text-align:center;padding:30px}
 .hide{display:none!important}
 .mini{font-size:12px;border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;font-family:inherit}
+.grp{grid-column:1/-1;margin:18px 0 -4px;font-family:Fraunces,Georgia,serif;font-size:20px;color:var(--navy)}
+.grp:first-child{margin-top:0}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
 .chip{font-size:13px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
 .chip:hover{border-color:var(--trends);background:var(--card)}
@@ -109,9 +111,9 @@ textarea:focus{outline:none;border-color:var(--navy)}
 </div>
 
 <script>
-const BANK=[];let _S;function sec(s){_S=s}
-function M(q,o,a,ex,x){BANK.push(Object.assign({t:"mcq",s:_S,q,o,a,ex},x||{}))}
-function S(q,m,c,x){BANK.push(Object.assign({t:"sa",s:_S,q,m,c},x||{}))}
+const BANK=[];let _S,_SRC="notes";function sec(s){_S=s}
+function M(q,o,a,ex,x){BANK.push(Object.assign({t:"mcq",s:_S,src:_SRC,q,o,a,ex},x||{}))}
+function S(q,m,c,x){BANK.push(Object.assign({t:"sa",s:_S,src:_SRC,q,m,c},x||{}))}
 // ===== ECONOMIC GROWTH =====
 sec("eg");
 M("What is Gross Domestic Product (GDP)?",
@@ -810,6 +812,7 @@ S("Explain why the current (2026) fiscal and monetary policy settings are in con
 S("Propose and justify a policy mix for an economy with low growth, rising unemployment above the NAIRU and inflation within 2–3%.",
  "Expansionary macro policy (cut the cash rate and/or expansionary budget) is appropriate because u/e is cyclical (above NAIRU) and inflation is under control, so there is room to boost AD. Combine with micro reforms (training, productivity) to lift AS so growth can be sustained without inflation.",
  [["expansionary MP and/or FP","expansion|cut|lower.*rate|stimul|spend|tax cut"],["justify: u/e above NAIRU = cyclical, inflation in target","cyclical|above.*nairu|nairu|target|room|2.?3|spare"],["supply-side/micro reform for sustainable growth","micro|supply|productiv|training|reform|aggregate supply"]]);
+_SRC="paper";
 // ===== PAST PAPERS (AT1 2026 & AT1 2025) + "asked a different way" variants =====
 // ---------- 2026 multiple choice ----------
 sec("ue");
@@ -1148,6 +1151,7 @@ S("Explain how a cut to tertiary education funding could affect aggregate supply
 S("An economy has unemployment of 4%, a NAIRU of 4.5% and inflation of 4% (target 2–3%). Explain the economic and policy implications.",
  "U/e is below the NAIRU → no cyclical u/e, tight labour market, wages bid up and inflation above target (accelerating). Policy: contractionary macro – higher cash rate (main tool, 6–18 month lag) and a contractionary budget – to reduce AD and wage pressure, accepting u/e rising toward 4.5%; fiscal and monetary policy should not conflict. Long term: micro reforms (training, childcare, migration, productivity) to lower the NAIRU and raise AS so low u/e is compatible with 2–3% inflation.",
  [["u/e below NAIRU, tight labour market","below|tight|no cyclical|shortage"],["wages and inflation above target / accelerating","wage|inflation|above|accelerat"],["contractionary MP (cash rate)","cash rate|interest|monetary|ocr|rais"],["contractionary FP / avoid conflict","fiscal|budget|surplus|conflict"],["u/e will rise towards NAIRU (trade-off)","rise|increase|trade.?off|phillips"],["micro reform to lower NAIRU / raise AS","micro|training|productiv|supply|nairu|reform"]],{pp:"Like 2026 Q16(c) · 6 marks"});
+_SRC="notes";
 // ===== extra short answers across topics =====
 sec("eg");
 S("Distinguish between nominal GDP and real GDP, and calculate real GDP if nominal GDP is $138bn and CPI is 115.",
@@ -1236,42 +1240,49 @@ function renderAiNote(){
 }
 
 // ---- home
-let TYPE="all",TSUB=null;
+let TYPE="all",SUB=null;
 document.querySelectorAll("#typePills .pill").forEach(b=>b.onclick=()=>{TYPE=b.dataset.t;document.querySelectorAll("#typePills .pill").forEach(x=>x.classList.toggle("on",x===b));renderHome()});
-function poolFor(sec){
-  let p=BANK.filter(q=>TYPE==="all"||q.t===TYPE);
-  if(sec==="weak")return p.filter(isWeak);
-  if(sec==="pp")return p.filter(q=>q.pp);
-  if(sec==="trends"){p=p.filter(q=>q.tr);return TSUB?p.filter(q=>q.s===TSUB):p}
-  if(sec!=="all")p=p.filter(q=>q.s===sec&&!q.tr);
-  return p;
-}
+const isPaper=q=>q.src==="paper", isExact=q=>isPaper(q)&&/^20\d\d Q/.test(q.pp||"");
+const CARDS=[
+  {h:"From your notes"},
+  {k:"eg",n:"Economic Growth",d:"AD, multiplier, real GDP, components, AS, effects, policy types",c:"var(--eg)",f:q=>!isPaper(q)&&q.s==="eg"&&!q.tr},
+  {k:"ue",n:"Unemployment",d:"Measurement, types, causes, groups, costs, policies",c:"var(--ue)",f:q=>!isPaper(q)&&q.s==="ue"&&!q.tr},
+  {k:"inf",n:"Inflation",d:"CPI, headline vs underlying, causes, effects, policy",c:"var(--inf)",f:q=>!isPaper(q)&&q.s==="inf"&&!q.tr},
+  {k:"nairu",n:"NAIRU",d:"Full employment, Phillips curves, policy settings",c:"var(--nairu)",f:q=>!isPaper(q)&&q.s==="nairu"&&!q.tr},
+  {k:"mix",n:"Combined",d:"Questions linking growth, unemployment and inflation",c:"var(--mix)",f:q=>!isPaper(q)&&q.s==="mix"&&!q.tr},
+  {k:"notes",n:"All notes questions",d:"Every concept question from your notes across all topics (trends are in the Trends box)",c:"var(--all)",f:q=>!isPaper(q)&&!q.tr,chips:true,wide:true},
+  {k:"trends",n:"Trends",d:"Australian data, periods and recent events from your notes – kept out of the concept boxes",c:"var(--trends)",f:q=>!isPaper(q)&&q.tr,chips:true,wide:true},
+  {h:"From the past papers (AT1 2025 & 2026)"},
+  {k:"ppx",n:"Exam questions",d:"The actual questions from both papers – multiple choice and Section II, marked with the official guidelines",c:"var(--pp)",f:isExact,chips:true,wide:true},
+  {k:"ppv",n:"Asked a different way",d:"The same skills and content as the papers, reworded – plus similar calculations",c:"var(--dist)",f:q=>isPaper(q)&&!isExact(q),chips:true,wide:true},
+  {k:"ppa",n:"All past-paper questions",d:"Exam questions and reworded versions together",c:"var(--pp)",f:isPaper,chips:true,wide:true},
+  {h:"Everything"},
+  {k:"all",n:"Everything",d:"Notes and past papers shuffled together",c:"var(--all)",f:q=>true},
+  {k:"weak",n:"My weak spots",d:"Only questions you've got wrong and not yet mastered",c:"var(--weak)",f:isWeak}
+];
+const CARD=Object.fromEntries(CARDS.filter(c=>c.k).map(c=>[c.k,c]));
+const TOPIC_ORDER=["eg","ue","inf","nairu","dist","mix"];
+function baseFor(k){return BANK.filter(q=>(TYPE==="all"||q.t===TYPE)&&CARD[k].f(q))}
+function poolFor(k){const p=baseFor(k);return SUB?p.filter(q=>q.s===SUB):p}
 function renderHome(){
   const g=document.getElementById("grid");g.innerHTML="";
-  for(const k of Object.keys(SECTIONS)){
-    const S=SECTIONS[k],p=poolFor(k);
-    const base=k==="weak"?BANK.filter(q=>TYPE==="all"||q.t===TYPE):p;
-    const m=base.filter(isMastered).length,w=base.filter(isWeak).length;
-    const el=document.createElement("button");el.className="sec";el.style.setProperty("--c",S.c);
-    const tot=p.length;
-    if(k==="weak"){
-      el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="stats"><span><span class="dot" style="background:var(--bad)"></span>${w} to review</span></div>`;
+  for(const C of CARDS){
+    if(C.h){const h=document.createElement("h2");h.className="grp";h.textContent=C.h;g.appendChild(h);continue}
+    const all=baseFor(C.k),m=all.filter(isMastered).length,w=all.filter(isWeak).length,tot=all.length;
+    const el=document.createElement("button");el.className="sec";el.style.setProperty("--c",C.c);
+    if(C.wide)el.style.gridColumn="1 / -1";
+    if(C.k==="weak"){
+      el.innerHTML=`<h3>${C.n}</h3><p>${C.d}</p><div class="stats"><span><span class="dot" style="background:var(--bad)"></span>${w} to review</span></div>`;
       if(!w){el.style.opacity=.55;el.disabled=true}
-    }else if(k==="trends"){
-      const all=BANK.filter(q=>q.tr&&(TYPE==="all"||q.t===TYPE));
-      const tm=all.filter(isMastered).length,tw=all.filter(isWeak).length;
-      const subs=["eg","ue","inf","nairu","mix"].filter(s=>all.some(q=>q.s===s));
-      el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="bar"><i class="m" style="width:${all.length?tm/all.length*100:0}%"></i><i class="w" style="width:${all.length?tw/all.length*100:0}%"></i></div>
-      <div class="stats"><span>${all.length} questions</span><span><span class="dot" style="background:var(--good)"></span>${tm}</span><span><span class="dot" style="background:var(--bad)"></span>${tw}</span></div>
-      <div class="chips">${subs.map(s=>`<span class="chip" data-sub="${s}">${SECTIONS[s].n} · ${all.filter(q=>q.s===s).length}</span>`).join("")}</div>`;
-      el.style.gridColumn="1 / -1";
-      el.onclick=e=>{const c=e.target.closest(".chip");TSUB=c?c.dataset.sub:null;start(k)};g.appendChild(el);continue;
     }else{
-      const mp=tot?m/tot*100:0,wp=tot?w/tot*100:0;
-      el.innerHTML=`<h3>${S.n}</h3><p>${S.d}</p><div class="bar"><i class="m" style="width:${mp}%"></i><i class="w" style="width:${wp}%"></i></div>
-      <div class="stats"><span>${tot} questions</span><span><span class="dot" style="background:var(--good)"></span>${m}</span><span><span class="dot" style="background:var(--bad)"></span>${w}</span></div>`;
+      const subs=C.chips?TOPIC_ORDER.filter(s=>all.some(q=>q.s===s)):[];
+      el.innerHTML=`<h3>${C.n}</h3><p>${C.d}</p><div class="bar"><i class="m" style="width:${tot?m/tot*100:0}%"></i><i class="w" style="width:${tot?w/tot*100:0}%"></i></div>
+      <div class="stats"><span>${tot} questions</span><span><span class="dot" style="background:var(--good)"></span>${m}</span><span><span class="dot" style="background:var(--bad)"></span>${w}</span></div>
+      ${subs.length?`<div class="chips">${subs.map(s=>`<span class="chip" data-sub="${s}">${SECTIONS[s].n} · ${all.filter(q=>q.s===s).length}</span>`).join("")}</div>`:""}`;
+      if(!tot){el.style.opacity=.55;el.disabled=true}
     }
-    el.onclick=()=>start(k);g.appendChild(el);
+    el.onclick=e=>{const c=e.target.closest(".chip");SUB=c?c.dataset.sub:null;start(C.k)};
+    g.appendChild(el);
   }
 }
 let resetArmed=false;
